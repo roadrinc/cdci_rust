@@ -1,9 +1,9 @@
 services:
-  api:
-    image: jorgeav527/api-rust
+  rest-api:
+    image: devroadr/cdci_rust
     build:
       context: .
       dockerfile: Dockerfile
       target: final
     ports:
-      - "8000:8000"
+      - "8080:8080"

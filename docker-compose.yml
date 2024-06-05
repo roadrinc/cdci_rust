@@ -1,0 +1,9 @@
+services:
+  api:
+    image: jorgeav527/api-rust
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final
+    ports:
+      - "8000:8000"

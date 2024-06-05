@@ -1,6 +1,7 @@
 services:
   rest-api:
-    image: devroadr/cdci_rust
+    container_name: rest-api-staging
+    image: devroadr/cdci_rust:staging
     build:
       context: .
       dockerfile: Dockerfile

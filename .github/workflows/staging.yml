@@ -32,8 +32,8 @@ jobs:
   CD:
     needs: CI
     runs-on:
-      - self-hosted
-      - staging
+        - self-hosted
+        - staging
 
     steps:
       - name: Checkout the latest code
@@ -42,19 +42,25 @@ jobs:
       - name: Docker Hub login
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Pull the Docker image
+      - name: Remove specific old containers if they exist
         run: |
-          cd $GITHUB_WORKSPACE
-          docker compose -f docker-compose.yml pull
+            docker stop rest-api-staging || true
+            docker rm rest-api-staging || true
 
-      - name: Start the container
+      - name: Pull the Docker images
         run: |
-          cd $GITHUB_WORKSPACE
-          docker compose -f docker-compose.yml up -d
+            cd $GITHUB_WORKSPACE
+            docker compose -f docker-compose.yml pull rest-api
+
+      - name: Start the containers
+        run: |
+            cd $GITHUB_WORKSPACE
+            docker compose -f docker-compose.yml up -d rest-api
 
       - name: Remove old Docker images
         run: |
-          docker rmi $(docker images devroadr/python-api-server -f "dangling=true" -q) || true
+            docker rmi $(docker images -f "dangling=true" -q) || true
+            # docker rmi $(docker images devroadr/python-api-server -f "dangling=true" -q) || true

@@ -9,11 +9,22 @@
 
 ARG RUST_VERSION=1.76.0
 ARG APP_NAME=cdci_rust
-FROM rust:${RUST_VERSION}-slim-bullseye AS build
+FROM rust:${RUST_VERSION}-slim-bullseye AS chef
 ARG APP_NAME
+USER root
 WORKDIR /app
+# Install Cargo Chef.
+RUN cargo install cargo-chef
 
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare  --recipe-path recipe.json
 # Build the application.
+
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+# Build dependencies - this is the caching Docker layer!
+RUN cargo chef cook --release --recipe-path recipe.json
 # Leverage a cache mount to /usr/local/cargo/registry/
 # for downloaded dependencies and a cache mount to /app/target/ for 
 # compiled dependencies which will speed up subsequent builds.
@@ -58,7 +69,7 @@ RUN adduser \
 USER appuser
 
 # Copy the executable from the "build" stage.
-COPY --from=build /bin/server /bin/
+COPY --from=builder /bin/server /bin/
 
 # Expose the port that the application listens on.
 EXPOSE 8080
